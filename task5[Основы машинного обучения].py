@@ -59,8 +59,8 @@ print_log(f'Количество строк, колонок: {df.shape}', print_
 # а также границу каждого квартиля - 25%, 50% и 75%. Любые значения NaN автоматически пропускаются.
 # Для категориальных признаков этот метод показывает: - Сколько уникальных значений в наборе данных - unique;
 # top значения; частота появления значений - freg.
-print_log(f"Сводка:\n{df.describe()}")
-print_log(f'[life_sq]\n{df['life_sq'].describe()}')
+print_log(f"Сводка:\n{df.describe()}", print_on=False)
+print_log(f'[life_sq]\n{df['life_sq'].describe()}', print_on=False)
 
 """Вычисляем процент и количество пропущенных данных по каждой колонке, сортируем по убыванию"""
 # isnull()
@@ -200,7 +200,7 @@ df['life_sq'] = df['life_sq'].fillna(-999)
 # df.boxplot(column=['life_sq'])
 
 """Описательная статистика"""
-print_log(f'[life_sq]\n{df['life_sq'].describe()}')
+print_log(f'[life_sq]\n{df['life_sq'].describe()}', print_on=False)
 
 """Столбчатая диаграмма"""
 # df['ecology'].value_counts().plot.bar()
@@ -243,41 +243,25 @@ print_log(df_dedupped2.shape, print_on=False)
 """Разные регистры символов"""
 tmp = df['sub_area'].value_counts(dropna=False)
 print_log(f'\nРазные регистры символов:\n{tmp}', print_on=False)
+
 # Если в какой-то записи вместо Poselenie Sosenskoe окажется poselenie sosenskoe, они будут расценены как два разных
 # значения. Нас это не устраивает.
-df['sub_area_lower'] = df['sub_area'].str.lower()
-df['sub_area_lower'].value_counts(dropna=False)
+sub_area_lower = df['sub_area'].str.lower().rename('sub_area_lower')
+df = pd.concat([df, sub_area_lower], axis=1)
+# print(f'{df['sub_area_lower'].value_counts(dropna=False)}')
 
 """Разные форматы данных"""
-# # Признак timestamp представляет собой строку, хотя является датой
-# print(df['timestamp'])
+# # Признак timestamp представляет собой object, хотя является датой
+print(df['timestamp'])
+
 # # Чтобы было проще анализировать транзакции по годам и месяцам, значения признака timestamp следует преобразовать в
 # # удобный формат:
 # # Преобразование столбца 'timestamp' в формат datetime
-df['timestamp_dt'] = pd.to_datetime(df['timestamp'], format='%Y-%m-%d')
-# df['year'] = df['timestamp_dt'].dt.year
-# df['month'] = df['timestamp_dt'].dt.month
-# df['weekday'] = df['timestamp_dt'].dt.weekday
-
-new_col1 = df['timestamp_dt'].dt.year.rename('year')
-new_col2 = df['timestamp_dt'].dt.month.rename('month')
-new_col3 = df['timestamp_dt'].dt.day.rename('day')
-
-# Объединяем новые столбцы с исходным DataFrame
-df = pd.concat([df, new_col1, new_col2, new_col3], axis=1)
-
-# ДЛЯ УБИРАНИЕ ОШИБКИ ПРЕДУПРЕЖДЕНИЯ
-# Создаем новые столбцы
-# new_columns = pd.DataFrame({
-#     'sub_area_lower': df['sub_area'].str.lower(),
-#     'timestamp_dt': pd.to_datetime(df['timestamp'], format='%Y-%m-%d')
-# })
-#
-# new_columns['year'] = new_columns['timestamp_dt'].dt.year
-# new_columns['month'] = new_columns['timestamp_dt'].dt.month
-# new_columns['weekday'] = new_columns['timestamp_dt'].dt.weekday
-# # Используем pd.concat для объединения всех новых столбцов с исходным DataFrame
-# df = pd.concat([df, new_columns], axis=1)
+timestamp_dt = pd.to_datetime(df['timestamp'], format='%Y-%m-%d').rename('timestamp_dt')
+df = pd.concat([df, timestamp_dt], axis=1)
+df['year'] = df['timestamp_dt'].dt.year
+df['month'] = df['timestamp_dt'].dt.month
+df['weekday'] = df['timestamp_dt'].dt.weekday
 
 # Теперь DataFrame не будет фрагментирован
 print_log(df['year'].value_counts(dropna=False), print_on=True)
@@ -298,7 +282,7 @@ msk = df_city_ex['city_distance_toronto'] <= 2
 df_city_ex.loc[msk, 'city'] = 'toronto'
 msk = df_city_ex['city_distance_vancouver'] <= 2
 df_city_ex.loc[msk, 'city'] = 'vancouver'
-print_log(df_city_ex)
+print_log(df_city_ex, print_on=False)
 
 """Адреса"""
 df_add_ex = pd.DataFrame(['123 MAIN St Apartment 15', '123 Main Street Apt 12   ', '543 FirSt Av', '  876 FIRst Ave.'],
@@ -324,4 +308,4 @@ df_add_ex['address_std'] = df_add_ex['address_std'].str.replace('\\.', '')
 df_add_ex['address_std'] = df_add_ex['address_std'].str.replace('\\bstreet\\b', 'st')
 df_add_ex['address_std'] = df_add_ex['address_std'].str.replace('\\bapartment\\b', 'apt')
 df_add_ex['address_std'] = df_add_ex['address_std'].str.replace('\\bav\\b', 'ave')
-print_log(df_add_ex)
+print_log(df_add_ex, print_on=False)
