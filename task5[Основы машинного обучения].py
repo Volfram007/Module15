@@ -263,7 +263,6 @@ df['year'] = df['timestamp_dt'].dt.year
 df['month'] = df['timestamp_dt'].dt.month
 df['weekday'] = df['timestamp_dt'].dt.weekday
 
-# Теперь DataFrame не будет фрагментирован
 print_log(df['year'].value_counts(dropna=False), print_on=True)
 print()
 print_log(df['month'].value_counts(dropna=False), print_on=True)
